@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+    />
+    <title></title>
+  </head>
+  <body>
+    <div id="app">
+      <!-- 
+        este componente (lights class) envuelve todos
+         los toggles de los focos. en caso de necesitar otro. va dentro de este div owo
+       -->
+      <div class="section lights">
+        <!-- foco 1 -->
+        <input type="checkbox" id="foco1" />
+        <label
+          title="encender foco 1"
+          id="foco1-label"
+          class="light-button"
+          for="foco1"
+        >
+          <span class="turn-on-indicator"></span>
+          <span class="icon material-symbols-outlined"> lightbulb </span>
+        </label>
+
+        <!-- foco 2 -->
+        <input type="checkbox" id="foco2" />
+        <label
+          title="encender foco 2"
+          id="foco2-label"
+          class="light-button"
+          for="foco2"
+        >
+          <span class="turn-on-indicator"></span>
+          <span class="icon material-symbols-outlined"> lightbulb </span>
+        </label>
+
+        <!-- foco 3 -->
+        <input type="checkbox" id="foco3" />
+        <label
+          title="encender foco 3"
+          id="foco3-label"
+          class="light-button"
+          for="foco3"
+        >
+          <span class="turn-on-indicator"></span>
+          <span class="icon material-symbols-outlined"> lightbulb </span>
+        </label>
+        <!-- foco 4 -->
+        <input type="checkbox" id="foco4" />
+        <label
+          title="encender foco 4"
+          id="foco4-label"
+          class="light-button"
+          for="foco4"
+        >
+          <span class="turn-on-indicator"></span>
+          <span class="icon material-symbols-outlined"> lightbulb </span>
+        </label>
+      </div>
+      <!-- indicadores -->
+      <div class="section indicators">
+        <!-- muestra el tiempo de ejecucion en pantalla -->
+        <div class="execution-time">0</div>
+        <div class="row">
+          <!-- Indicador de temperatura -->
+          <div
+            title="Indicador de temperatura"
+            id="temperatura"
+            class="indicator-item"
+          >
+            <span class="icon floating material-symbols-outlined">
+              thermometer
+            </span>
+            <h1 id="temperatura-data">0</h1>
+            <h2>Temperatura</h2>
+          </div>
+          <!-- Indicador de Humedad -->
+          <div title="Indicador de humedad" id="humedad" class="indicator-item">
+            <span class="icon floating material-symbols-outlined">
+              humidity_percentage
+            </span>
+            <h1 id="humedad-data">0</h1>
+            <h2>Humedad</h2>
+          </div>
+        </div>
+        <!-- Indicador dee sensacion -->
+        <div
+          title="Indicador de sensacion"
+          id="sensacion"
+          class="indicator-item"
+        >
+          <span class="icon floating material-symbols-outlined">sensors</span>
+          <h1 id="sensacion-data">0</h1>
+          <h2>Sensacion</h2>
+        </div>
+      </div>
+
+      <div class="section general-box">
+        <!-- 
+          ventiladdores 
+          Aqui van todos los botones para 
+          cada ventilador
+        -->
+
+        <label
+          title="Encender modo automático"
+          id="switch"
+          class="switch"
+          for="auto-switch"
+        >
+          <input type="checkbox" id="auto-switch" />
+
+          <span class="slider"> </span>
+        </label>
+        <div class="fans">
+          <!-- Este es switch del modo auto -->
+
+          <!-- este es un ventilador -->
+          <input type="checkbox" id="fan1" />
+
+          <label
+            title="encender ventilador 1"
+            id="fan1-label"
+            class="fan-button"
+            for="fan1"
+          >
+            <span class="icon fan-icon material-symbols-outlined"> mode_fan_off </span>
+            <span class="auto-mode-indicator">A</span>
+          </label>
+          <!-- este es un ventilador -->
+          <input type="checkbox" id="fan2" />
+
+          <label
+            title="encender ventilador 2"
+            id="fan2-label"
+            class="fan-button"
+            for="fan2"
+          >
+            <span class="icon fan-icon material-symbols-outlined"> mode_fan_off </span>
+            <span class="auto-mode-indicator">A</span>
+          </label>
+        </div>
+
+        <!-- Contactos (electricos no de los otros :p) -->
+
+        <div class="connectors">
+          <input type="checkbox" id="connector1" />
+          <label for="connector1" class="connector" id="connector1-label">
+            <span class="icon material-symbols-outlined"> outlet </span>
+          </label>
+          <input type="checkbox" id="connector2" />
+          <label for="connector2" class="connector" id="connector2-label">
+            <span class="icon material-symbols-outlined"> outlet </span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+
+    <script>
+      var socket = io();
+
+      /*
+       esta funcion se encarga de mostrar la información de un sensor
+       dado tipo del sensor
+      */
+      const sensorWrapper = (sensorType, data) => {
+        const indicator = document.querySelector("#" + sensorType + "-data");
+        if (sensorType === "temperatura" || sensorType === "sensacion") {
+          indicator.innerHTML = data + " °C";
+        } else if (sensorType === "humedad") {
+          indicator.innerHTML = data + " %";
+        }
+      };
+
+      /*
+       esta funcion se encarga de cambiar el estado de un ventilador
+      */
+      const toggleFan = (fanId, fanState) => {
+        const fanInput = document.querySelector("#" + fanId);
+        const fanButton = document.querySelector("#" + fanId + "-label");
+        const icon = fanButton.querySelector(":scope > span.icon");
+
+        fanButton.addEventListener("click", () => {
+            
+          if (fanInput.disabled) {
+             
+          
+          } else {
+            if (!fanInput.checked) {
+             
+             icon.innerHTML = "mode_fan";
+             socket.emit("encender" + fanState);
+             //TODO: AQI APAGAS EL VENTILADOR
+             // ejemplo: socket.emit("apagar ventilador",fanState);
+           } else {
+             console.log("modo auto off");
+             icon.innerHTML = "mode_fan_off";
+             socket.emit("apagar" + fanState);
+             //TODO: AQUI ENCIENDES EL VENTILADOR
+             // ejemplo: socket.emit("encender ventilador",fanState);
+           }
+          }
+
+          
+        });
+      };
+
+      /*
+       esta función activa el modo automático de 
+       los ventiladores
+      */
+      const toggleAutoFan = () => {
+        const switchLabel = document.querySelector("#switch");
+        const autoFanSwitch = document.querySelector("#auto-switch");
+        const fan1 = document.querySelector("#fan1");
+        const fan2 = document.querySelector("#fan2");
+        const fan1Label = document.querySelector("#fan1-label");
+        const fan2Label = document.querySelector("#fan2-label");
+
+        const fan1Indicator = fan1Label.querySelector(":scope > span.auto-mode-indicator");
+        const fan2Indicator = fan2Label.querySelector(":scope > span.auto-mode-indicator");
+
+        console.log(fan1Indicator);
+
+        autoFanSwitch.addEventListener("click", () => {
+          console.log("clicked");
+          //TODO: AQUI ENCIENDES LA FUNCION AUTOMATICA DE LOS VENTILADORES
+          // ejemplo: socket.emit("encender auto-ventilador",<ESTADO>);
+          if (!autoFanSwitch.checked) {
+            
+            switchLabel.classList.remove("turn-on");
+            socket.emit("apagarAutoFan");
+            fan1.disabled = false;
+            fan2.disabled = false;
+            fan1Label.classList.remove("disabled")
+            fan2Label.classList.remove("disabled")
+            fan1Indicator.classList.remove("show-auto-tag") 
+            fan2Indicator.classList.remove("show-auto-tag")
+         
+         
+            //TODO: AQUI APAGAS LA FUNCION AUTOMATICA DE LOS VENTILADORES
+            // ejemplo: socket.emit("apagar auto-ventilador",<ESTADO>);
+          } else {
+            fan1.disabled = true;
+            fan2.disabled = true;
+            console.log(fan1.disabled)
+            fan1Label.classList.add("disabled")
+            fan2Label.classList.add("disabled")
+            fan1Indicator.classList.add("show-auto-tag")
+            fan2Indicator.classList.add("show-auto-tag")
+        
+            switchLabel.classList.add("turn-on");
+            socket.emit("encenderAutoFan");
+          }
+        });
+      };
+
+      /*
+       esta función cambia el estado del foco  
+      */
+      const toggleLight = (focoId, lightId) => {
+        const foco = document.querySelector("#" + focoId);
+        const currentLabel = document.querySelector("#" + focoId + "-label");
+        const indicator = currentLabel.querySelector(
+          ":scope > span.turn-on-indicator"
+        );
+        const icon = currentLabel.querySelector(":scope > span.icon");
+        foco.addEventListener("click", () => {
+          if (!foco.checked) {
+            icon.innerHTML = "lightbulb";
+            indicator.classList.remove("turn-on");
+            icon.classList.remove("icon-turn-on");
+            socket.emit("apagar" + lightId);
+          } else {
+            indicator.classList.add("turn-on");
+            icon.innerHTML = "tips_and_updates";
+            icon.classList.add("icon-turn-on");
+            socket.emit("encender" + lightId);
+          }
+        });
+      };
+      /*
+       esta funcion se encarga de cambiar el estado de un contacto##########################################################
+      */
+      const toggleConnector = (connectorId, connectorState) => {
+        const connector = document.querySelector("#" + connectorId);
+        const connectorLabel = document.querySelector(
+          "#" + connectorId + "-label"
+        );
+        const icon = connectorLabel.querySelector(":scope > span.icon");
+        connectorLabel.addEventListener("click", () => {
+          if (connector.checked) {
+            connectorLabel.classList.remove("turn-on");
+            icon.classList.remove("turn-on-color");
+
+            //TODO: AQUI APAGAS EL CONTACTO
+            // ejemplo: socket.emit("apagar contacto",connectorState);
+            socket.emit("apagar" + connectorState);
+          } else {
+            icon.classList.add("turn-on-color");
+            connectorLabel.classList.add("turn-on");
+            socket.emit("encender" + connectorState);
+            //TODO: AQUI ENCIENDES EL CONTACTO
+            // ejemplo: socket.emit("encender contacto",connectorState);
+          }
+        });
+      };
+      /*
+        En caso de añadir más focos:
+
+        Usa el siguiente pedazo de codigo como base para crear.
+
+        <label
+          title="encender foco <FOCO>"
+          id="foco<FOCO>-label"
+          class="light-button"
+          for="foco<FOCO>"
+        >ss
+          <input type="checkbox" id="foco<FOCO>" />
+          <span class="turn-on-indicator"></span>
+          <span class="icon material-symbols-outlined"> lightbulb </span>
+        </label>
+         
+        Cambia el número u identificador respectico del foco 
+        reemplazando "<FOCO>", puedes tomar el ejemplo del "foco1",
+        despues llama la función "toggleLight" con el id del nuevo 
+        foco y su identificafor
+
+         ejemplo:
+
+         toggleLight("foco5","L5");
+
+         recomendación: Mantener todas las declaraciones
+         de esta función juntas debajo de este comentario.
+      
+      
+        */
+
+      toggleLight("foco1", "L1");
+      toggleLight("foco2", "L2");
+      toggleLight("foco3", "L3");
+      toggleLight("foco4", "L4");
+
+      /*
+         En caso de añadir un nuevo ventilador:
+
+         crealo a partir de este template:
+          
+          <label
+            title="encender ventilador <VENTILADOR>"
+            id="fan<VENTILADOR>-label"
+            class="fan-button"
+            for="fan<VENTILADOR>"
+          >
+            <input type="checkbox" id="fan<VENTILADOR>" />
+            <span class="icon material-symbols-outlined"> mode_fan_off </span>
+          </label>
+        
+          Cambia todos los "<VENTILADOR>" por el identificador del foco.
+          despues de añadir el componente del nuevo ventilador.
+          para hacer funcionar el nuevo ventilador usa la función "toggleFan"
+          con el idntificador de parametro
+            ejemplo:
+              toggleFan("fan3");
+
+          recomendación: Mantener todas las declaraciones
+         de esta función juntas debajo de este comentario.
+      
+      */
+
+      // Activa el control automático de los ventiladores
+      // no recibe paramtros, el estado va directo en la funcion
+      toggleAutoFan();
+
+      //TODO: COLOCAR EL SEGUNDO PARAMETRO (EL IDENTIFICADOR)
+      /*
+      el identificador es la forma en la que sabes el estado de tu ventilador desde el servidor
+      por ejemplor "L1" en para prender tu primer foco
+      */
+      toggleFan("fan1", "L7");
+      toggleFan("fan2", "L8");
+
+      // Activadores de los contactos
+
+      //TODO:COLOCAR EL ESTADO O IDENTIFICADOR
+
+      toggleConnector("connector1", "L5");
+      toggleConnector("connector2", "L6");
+
+      // Obteniendo informacion de los sensores
+
+      socket.on("humedad", function (data) {
+        //get humedad from server
+        sensorWrapper("humedad", data);
+      });
+      socket.on("temperatura", function (data) {
+        //get humedad from server
+        sensorWrapper("temperatura", data);
+      });
+      socket.on("sensacion", function (data) {
+        //get humedad from server
+        sensorWrapper("sensacion", data);
+      });
+
+      socket.on("tiempo", function (data) {
+        //get humedad from server
+        document.querySelector(".execution-time").innerHTML = data;
+      });
+    </script>
+
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Roboto&display=swap");
+
+      .test {
+        display: none;
+      }
+      * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+        font-family: "Roboto", sans-serif;
+        color: rgb(200, 200, 200);
+      }
+      #app {
+        background-color: #36393f;
+        padding: 1rem;
+        padding-inline: 2.5rem;
+        width: 100%;
+        height: 100vh;
+        margin: auto;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+      }
+
+      .section {
+        height: 100%;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        background-color: #2f3136;
+      }
+      .lights {
+        display: grid;
+        gap: 1rem;
+      }
+
+      input[type="checkbox"] {
+        display: none;
+      }
+
+      .light-button {
+        margin: auto;
+        padding: 1rem;
+        border-radius: 1rem;
+        box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px,
+          rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
+        height: fit-content;
+        width: fit-content;
+        transition: all ease 0.5s;
+        position: relative;
+        user-select: none;
+        background-color: #42464d;
+        color: lightslategray;
+      }
+      .light-button:hover {
+        background-color: rgb(112, 128, 144, 0.2);
+        color: black;
+      }
+      .light-button:active {
+        transform: scale(105%);
+      }
+
+   
+
+      .icon {
+        padding: 0.5rem;
+        font-size: 3.4rem;
+      }
+      .icon-turn-on {
+        color: rgb(227, 227, 114);
+      }
+
+      .turn-on-indicator {
+        position: absolute;
+        height: 1rem;
+        width: 1rem;
+        top: 0.5rem;
+        border-radius: 100%;
+        right: 0.5rem;
+        border: solid 1px lightgray;
+      }
+
+      .general-box {
+        background-color: #2f3136;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        position: relative;
+      }
+      .fans {
+        padding: 1rem;
+        padding-top: 3rem;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        animation: fadeIn 1s;
+      }
+
+      .switch {
+        position: absolute;
+        height: 2.1rem;
+        width: 3.5rem;
+        background-color: #42464d;
+        border-radius: 1rem;
+        display: inline-block;
+        top: 1rem;
+        right: 1rem;
+        padding: 0.3rem;
+        padding-bottom: 0.8rem;
+        z-index: 5;
+      }
+
+      .slider {
+        background-color: #2f3136;
+        display: flex;
+        border-radius: 100%;
+        width: 1.5rem;
+        height: 1.5rem;
+        transition: all ease 0.5s;
+      }
+
+      .switch input:checked + .slider {
+        transform: translateX(1.5rem);
+      }
+
+      .connectors {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2rem;
+      }
+
+      .connector {
+        background-color: #42464d;
+        padding: 1rem;
+        border-radius: 1rem;
+        user-select: none;
+        transition: all ease 0.5s;
+      }
+
+      .connector:active {
+        transform: scale(105%);
+      }
+
+      .connector span {
+        font-size: 6rem;
+      }
+
+      .fan-button {
+        background-color: #42464d;
+        width: fit-content;
+        display: flex;
+        height: fit-content;
+        padding: 0.5rem;
+        font-size: 12rem;
+        border-radius: 0.5rem;
+        user-select: none;
+        -webkit-user-drag: none;
+        transition: all ease 0.5s;
+        position: relative;
+      }
+      .fan-button:hover {
+        opacity: 0.6;
+      }
+      .fan-button:active {
+        transform: scale(105%);
+      }
+
+      .fan-button  .fan-icon{
+        font-size: 4rem;
+      }
+
+      .indicators {
+        display: flex;
+        margin: auto;
+        flex-direction: column;
+        grid-template-columns: repeat(2, 1fr);
+        width: 100%;
+        gap: 1rem;
+        padding-top: 3rem;
+        height: 100%;
+        user-select: none;
+        align-items: center;
+        position: relative;
+      }
+
+      .execution-time {
+        position: absolute;
+        bottom: 1rem;
+        right: 1rem;
+      }
+
+      .indicators .row {
+        display: flex;
+        gap: 1rem;
+      }
+      .indicators .indicator-item {
+        margin: auto;
+        height: 15rem;
+        width: 15rem;
+        border-radius: 1rem;
+        background-color: #42464d;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+        justify-content: center;
+      }
+      h1 {
+        font-size: 3rem;
+      }
+
+      .floating {
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+
+      .turn-on {
+        background-color: lightgreen;
+        color: #2f3136;
+      }
+
+      .turn-on-color {
+        color: #2f3136;
+      }
+      .disabled{
+        background-color: rgb(0, 153, 255);
+      }
+      .auto-mode-indicator{
+        display: none;
+        font-size:1rem;
+        bottom: 0;
+        padding:0.3rem;
+        height:fit-content;
+        position:absolute;
+      }
+      .show-auto-tag{
+        display: initial;
+      }
+    </style>
+  </body>
+</html>
