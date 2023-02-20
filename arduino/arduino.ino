@@ -39,27 +39,21 @@ void setup()
   digitalWrite(L7, HIGH);
   pinMode(L8,OUTPUT);     //Ventilador 2
   digitalWrite(L8, HIGH);
-  
   Serial.println("Ahora esta funcionando");
 }
 
 void loop()
 {
   delay(250);
-
   EncenderApagar();
-  
   float h = dht.readHumidity();
   float t = dht.readTemperature();
-  
   if (isnan(h) || isnan(t)) {
     Serial.println("Error al leer el sensor");
     return;
   }
-
   controlarVentilador(t);
   ImprimirValores();
-
 }
 
 void controlarVentilador(float t) {
